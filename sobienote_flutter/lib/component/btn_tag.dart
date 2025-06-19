@@ -12,7 +12,7 @@ class BtnTag extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(40),
         child: Container(
           color: selected == true ? DARK_TEAL : GRAY_09,
           child: Padding(

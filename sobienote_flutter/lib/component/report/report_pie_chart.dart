@@ -30,6 +30,7 @@ class _ReportPieChartState extends State<ReportPieChart> {
       ],
     );
   }
+
   Widget renderPieChart() {
     return FutureBuilder<BaseResponse<List<ReportResponse>>>(
       future: widget.emotions,
@@ -39,10 +40,14 @@ class _ReportPieChartState extends State<ReportPieChart> {
         }
 
         final items = snapshot.data!.data;
-        final filtered = items.where((e) => e.value_cnt > 0).toList()
-          ..sort((a, b) => b.value_cnt.compareTo(a.value_cnt));
+        final filtered =
+            items.where((e) => e.value_cnt > 0).toList()
+              ..sort((a, b) => b.value_cnt.compareTo(a.value_cnt));
         final top6 = filtered.take(6).toList();
-        final totalCount = top6.fold<int>(0, (sum, item) => sum + item.value_cnt);
+        final totalCount = top6.fold<int>(
+          0,
+          (sum, item) => sum + item.value_cnt,
+        );
 
         if (totalCount == 0 || top6.isEmpty) {
           return const Padding(
@@ -52,9 +57,10 @@ class _ReportPieChartState extends State<ReportPieChart> {
         }
 
         final List<Color> pieColors = [PIE1, PIE2, PIE3, PIE4, PIE5, PIE6];
-        final touched = (touchedIndex >= 0 && touchedIndex < top6.length)
-            ? top6[touchedIndex]
-            : null;
+        final touched =
+            (touchedIndex >= 0 && touchedIndex < top6.length)
+                ? top6[touchedIndex]
+                : null;
 
         return AspectRatio(
           aspectRatio: 1,
@@ -71,20 +77,36 @@ class _ReportPieChartState extends State<ReportPieChart> {
                           touchedIndex = -1;
                         } else {
                           touchedIndex =
-                              pieTouchResponse!.touchedSection!.touchedSectionIndex;
+                              pieTouchResponse!
+                                  .touchedSection!
+                                  .touchedSectionIndex;
                         }
                       });
                     },
                   ),
                   borderData: FlBorderData(show: false),
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40,
+                  sectionsSpace: 4,
+                  centerSpaceRadius: 60,
                   sections: List.generate(top6.length, (i) {
                     final emotion = top6[i];
                     return PieChartSectionData(
                       color: pieColors[i],
                       value: emotion.value_cnt.toDouble(),
-                      title: emotion.keyword,
+                      title: '',
+                      badgeWidget: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(102),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          emotion.keyword,
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
                       radius: i == touchedIndex ? 65.0 : 60.0,
                     );
                   }),
@@ -98,15 +120,12 @@ class _ReportPieChartState extends State<ReportPieChart> {
                       touched.keyword,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 26,
                       ),
                     ),
                     Text(
                       '${(touched.value_cnt / totalCount * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 21),
                     ),
                   ],
                 ),
@@ -116,5 +135,4 @@ class _ReportPieChartState extends State<ReportPieChart> {
       },
     );
   }
-
 }

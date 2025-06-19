@@ -56,7 +56,7 @@ class TopSheetSelector extends StatelessWidget {
                         '$selectedYear년',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 24,
                         ),
                       ),
                       Icon(Icons.arrow_drop_down),
@@ -118,7 +118,10 @@ class TopSheetSelector extends StatelessWidget {
             ),
             child: Text(
               labelBuilder(i),
-              style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+                fontSize: 18,
+              ),
             ),
           ),
         );

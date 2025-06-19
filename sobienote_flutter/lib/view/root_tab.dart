@@ -50,7 +50,7 @@ class _RootTabState extends State<RootTab> with TickerProviderStateMixin {
           backgroundColor: controller.index == 1 ? Colors.white : TAB_BG_COLOR,
           selectedFontSize: 14,
           unselectedFontSize: 14,
-          unselectedItemColor: DARK_GRAY,
+          unselectedItemColor: UNSELECTED_GRAY,
           selectedItemColor: DARK_TEAL,
           type: BottomNavigationBarType.fixed,
           onTap: (int index) {
@@ -62,14 +62,17 @@ class _RootTabState extends State<RootTab> with TickerProviderStateMixin {
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_filled),
               label: '홈',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.add_box_rounded),
+              icon: Icon(Icons.add_box_outlined),
+              activeIcon: Icon(Icons.add_box_rounded),
               label: '추가',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_rounded),
+              icon: Icon(Icons.bar_chart_outlined),
+              activeIcon: Icon(Icons.bar_chart_rounded),
               label: '보고서',
             ),
           ],

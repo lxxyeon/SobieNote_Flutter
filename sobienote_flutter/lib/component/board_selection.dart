@@ -205,7 +205,7 @@ class _BoardContentSectionState extends ConsumerState<BoardContentSection> {
             _renderImagePreview(),
             const SizedBox(height: 52),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -382,7 +382,7 @@ class _BoardContentSectionState extends ConsumerState<BoardContentSection> {
         onPressed: () async {
           await _handleSubmit(boardAction, isEdit);
         },
-        child: Text(buttonText, style: TextStyle(color: GRAY_09)),
+        child: Text(buttonText, style: TextStyle(color: GRAY_09, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -500,10 +500,19 @@ class _BoardContentSectionState extends ConsumerState<BoardContentSection> {
   Widget _renderDetail() {
     return Column(
       children: [
-        Text('오늘의 소비에 대해 더 자세히 기록해 볼까요?', style: kTitleTextStyle),
+        Text(
+          '오늘의 소비에 대해 더 자세히 기록해 볼까요?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: GRAY_00,
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: TextField(
+            maxLines: 3,
+            minLines: 2,
             controller: _form.detailController,
             decoration: InputDecoration(
               hintText: '물건의 특징이나 구매 동기 등을 적어보세요!',

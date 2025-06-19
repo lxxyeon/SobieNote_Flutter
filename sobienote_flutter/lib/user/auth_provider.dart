@@ -31,13 +31,10 @@ class AuthProvider extends ChangeNotifier {
     GoRoute(
       path: '/',
       name: RootTab.routeName,
-      pageBuilder:
-          (context, state) => MaterialPage(
-            key: ValueKey(
-              'RootTab-${DateTime.now().millisecondsSinceEpoch}',
-            ), // 항상 새로 빌드
-            child: const RootTab(),
-          ),
+      pageBuilder: (context, state) => MaterialPage(
+        key: ValueKey('RootTab-${DateTime.now().millisecondsSinceEpoch}'),
+        child: const RootTab(),
+      ),
     ),
     GoRoute(
       path: '/splash',
@@ -70,7 +67,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   FutureOr<String?> redirectLogic(BuildContext context, GoRouterState state) {
-    final UserModelBase? user = ref.read(userProvider);
+    final UserModelBase? user = ref.watch(userProvider);
     final loggingIn = state.matchedLocation == '/login';
 
     if (user == null) {

@@ -213,8 +213,9 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
 
   Widget _buildInfoBox(List<Widget> children) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        border: Border.all(),
+        border: Border.all(color: GRAY_06),
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         color: GRAY_09,
       ),
@@ -233,5 +234,5 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     );
   }
 
-  Widget _buildDivider() => const Divider();
+  Widget _buildDivider() => const Divider(color: GRAY_06);
 }

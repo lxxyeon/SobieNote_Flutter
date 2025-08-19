@@ -9,7 +9,7 @@ enum VerificationType {
 
 @JsonSerializable()
 class OAuthResponse{
-  final String accessToken;
+  final String? accessToken;
   final int memberId;
 
   OAuthResponse({required this.accessToken, required this.memberId});

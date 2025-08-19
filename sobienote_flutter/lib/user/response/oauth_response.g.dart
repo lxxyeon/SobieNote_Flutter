@@ -8,7 +8,7 @@ part of 'oauth_response.dart';
 
 OAuthResponse _$OAuthResponseFromJson(Map<String, dynamic> json) =>
     OAuthResponse(
-      accessToken: json['accessToken'] as String,
+      accessToken: json['accessToken'] as String?,
       memberId: (json['memberId'] as num).toInt(),
     );
 

@@ -27,6 +27,7 @@ class UserInfoScreen extends ConsumerStatefulWidget {
 class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
   File? _profileImage;
   ImagePicker imagePicker = ImagePicker();
+  bool isYouth = false;
 
   @override
   void initState() {
@@ -192,19 +193,32 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                   _buildInfoRow('이메일', user.email, textStyle),
                 ]),
                 const SizedBox(height: 30),
-                if (user.name != null ||
-                    user.age != null ||
-                    user.school != null)
-                  _buildInfoBox([
-                    if (user.name != null)
-                      _buildInfoRow('이름', user.name!, textStyle),
-                    if (user.name != null) _buildDivider(),
-                    if (user.age != null)
-                      _buildInfoRow('나이', user.age!, textStyle),
-                    if (user.age != null) _buildDivider(),
-                    if (user.school != null)
-                      _buildInfoRow('소속', user.school!, textStyle),
-                  ]),
+                // Container(
+                //   margin: const EdgeInsets.symmetric(horizontal: 15),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text('우리동네 Youth-Up 참가자인가요?', style: textStyle),
+                //       CupertinoSwitch(
+                //         value: isYouth,
+                //         onChanged: (bool val) {
+                //           setState(() {
+                //             isYouth = val;
+                //           });
+                //         },
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // const SizedBox(height: 30),
+                // if (isYouth)
+                //   _buildInfoBox([
+                //     _buildInfoRow('이름', user.name, textStyle),
+                //     _buildDivider(),
+                //     _buildInfoRow('나이', user.age, textStyle),
+                //     _buildDivider(),
+                //     _buildInfoRow('소속', user.school, textStyle),
+                //   ]),
               ],
             ),
       ),
@@ -213,7 +227,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
 
   Widget _buildInfoBox(List<Widget> children) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 15),
       decoration: BoxDecoration(
         border: Border.all(color: GRAY_06),
         borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -224,12 +238,15 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, TextStyle style) {
+  Widget _buildInfoRow(String label, String? value, TextStyle style) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: style), Text(value, style: style)],
+        children: [
+          Text(label, style: style),
+          if (value != null) Text(value, style: style),
+        ],
       ),
     );
   }

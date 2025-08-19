@@ -7,7 +7,9 @@ import 'package:sobienote_flutter/user/request/sign_up_form.dart';
 import '../user/user_provider.dart';
 
 class SignUpBottomSheet extends ConsumerStatefulWidget {
-  const SignUpBottomSheet({super.key});
+  final BuildContext parentContext;
+
+  const SignUpBottomSheet({super.key, required this.parentContext});
 
   @override
   ConsumerState<SignUpBottomSheet> createState() => _SignUpBottomSheetState();
@@ -25,27 +27,55 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
 
-  void _nextStep() {
+  Future<void> _nextStep() async {
     if (_currentStep < 2) {
       setState(() {
         _currentStep++;
         _isValid = false;
       });
       _validate();
-    } else{
-      ref
-          .read(userProvider.notifier)
-          .signUp(
-        form: SignUpForm(
-          name: _nicknameController.text,
-          password: _pwController.text,
-          email: _emailController.text,
-          studentName: _nameController.text,
-          age: _ageController.text.isEmpty ? null : int.parse(_ageController.text),
-        ),
-      );
+    } else {
+      bool isSuccess = false;
+      try {
+        isSuccess = await ref.read(userProvider.notifier).signUp(
+          form: _nameController.text.isNotEmpty && _ageController.text.isNotEmpty
+              ? SignUpForm(
+            name: _nicknameController.text,
+            password: _pwController.text,
+            email: _emailController.text,
+            studentName: _nameController.text,
+            age: _ageController.text.isEmpty
+                ? null
+                : int.parse(_ageController.text),
+          )
+              : SignUpForm(
+            name: _nicknameController.text,
+            password: _pwController.text,
+            email: _emailController.text,
+          ),
+        );
+      } catch (e) {
+        isSuccess = false;
+      }
+
+      showCupertinoDialog(context: context, builder: (context) {
+        return CupertinoAlertDialog(
+          title: Text('인증메일을 전송하였습니다.'),
+          content: Text('메일을 확인하여 인증을 완료해주세요.'),
+          actions: [
+            CupertinoDialogAction(
+              child: Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      });
     }
   }
+
 
   Widget _buildStepIndicator() {
     return Row(
@@ -230,7 +260,11 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
       } else if (_currentStep == 1) {
         final pw = _pwController.text;
         final confirm = _pwConfirmController.text;
-        _isValid = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$%^&*()_+~])[A-Za-z\d!@#\$%^&*()_+~]{8,20}$').hasMatch(pw) && pw == confirm;
+        _isValid =
+            RegExp(
+              r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$%^&*()_+~])[A-Za-z\d!@#\$%^&*()_+~]{8,20}$',
+            ).hasMatch(pw) &&
+            pw == confirm;
       } else if (_currentStep == 2) {
         final email = _emailController.text.trim();
         _isValid = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);

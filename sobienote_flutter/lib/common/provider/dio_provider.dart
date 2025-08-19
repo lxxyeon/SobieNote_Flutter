@@ -34,7 +34,6 @@ class CustomInterceptor extends Interceptor {
     }
 
     if (err.response?.statusCode == 404) {
-      return;
     } else if (err.response?.statusCode == 403) {
       final email = await storage.read(key: EMAIL_KEY);
       final name = await storage.read(key: NAME_KEY);

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:sobienote_flutter/common/provider/secure_storage.dart';
+import 'package:sobienote_flutter/common/response/base_response.dart';
 import 'package:sobienote_flutter/user/request/login_request.dart';
 import 'package:sobienote_flutter/user/request/sign_up_form.dart';
 import 'package:sobienote_flutter/user/request/social_login_request.dart';
@@ -97,8 +98,8 @@ class AuthRepository {
     return resp.data;
   }
   
-  Future<OAuthResponse> signUp({required SignUpForm form}) async {
+  Future<BaseResponse<OAuthResponse>> signUp({required SignUpForm form}) async {
     final resp = await userRepository.signUp(form);
-    return resp.data;
+    return resp;
   }
 }

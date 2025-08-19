@@ -14,7 +14,6 @@ class OnboardingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final _emailController = TextEditingController();
     final _passwordController = TextEditingController();
 
@@ -44,94 +43,93 @@ class OnboardingScreen extends ConsumerWidget {
             width: targetWidth,
             height: targetHeight,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                const SizedBox(height: 20),
                 Image.asset(
-                  'assets/images/new_onboarding.jpeg',
+                  'assets/images/new_splash.png',
                   fit: BoxFit.cover,
-                  width: double.infinity,
+                  width: 300,
                 ),
                 Column(
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
                       children: [
-                        SizedBox(
-                          height: 85,
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 40,
-                                width: 250,
-                                child: TextField(
-                                  controller: _emailController,
-                                  decoration: InputDecoration(
-                                    hintText: '이메일',
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10,
-                                      horizontal: 12,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
-                                  style: TextStyle(fontSize: 15),
-                                ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 50),
+                          child: TextField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              hintText: '이메일',
+                              fillColor: Colors.white,
+                              filled: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 12,
                               ),
-                              const SizedBox(height: 5),
-                              SizedBox(
-                                height: 40,
-                                width: 250,
-                                child: TextField(
-                                  controller: _passwordController,
-                                  obscureText: true,
-                                  decoration: InputDecoration(
-                                    hintText: '비밀번호',
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10,
-                                      horizontal: 12,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
-                                  style: TextStyle(fontSize: 15),
-                                ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none,
                               ),
-                            ],
+                            ),
+                            style: TextStyle(fontSize: 15),
                           ),
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(height: 15),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 50),
+                          child: TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              hintText: '비밀번호',
+                              fillColor: Colors.white,
+                              filled: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 60),
                         GestureDetector(
                           onTap: () {
                             ref
                                 .read(userProvider.notifier)
                                 .login(
-                              loginRequest: LoginRequest(
-                                email: _emailController.text,
-                                password: _passwordController.text,
-                              ),
-                            );
+                                  loginRequest: LoginRequest(
+                                    email: _emailController.text,
+                                    password: _passwordController.text,
+                                  ),
+                                );
                           },
                           child: Container(
-                            width: 50,
-                            height: 80,
+                            margin: const EdgeInsets.symmetric(horizontal: 60),
+                            height: 50,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(30),
                             ),
-                            child: Center(child: const Text('확인')),
+                            child: Center(
+                              child: const Text(
+                                '로그인',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -189,7 +187,7 @@ class OnboardingScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -198,7 +196,9 @@ class OnboardingScreen extends ConsumerWidget {
                             showModalBottomSheet(
                               isScrollControlled: true,
                               context: context,
-                              builder: (context) => SignUpBottomSheet(),
+                              builder:
+                                  (_) =>
+                                      SignUpBottomSheet(parentContext: context),
                             );
                           },
                           child: const Text(
@@ -206,24 +206,24 @@ class OnboardingScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: DARK_GRAY,
+                              color: GRAY_00,
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Container(color: DARK_GRAY, height: 16, width: 2),
-                        const SizedBox(width: 6),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            '회원 찾기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: DARK_GRAY,
-                            ),
-                          ),
-                        ),
+                        // Container(color: GRAY_00, height: 16, width: 2),
+                        // const SizedBox(width: 6),
+                        // TextButton(
+                        //   onPressed: () {},
+                        //   child: const Text(
+                        //     '회원 찾기',
+                        //     style: TextStyle(
+                        //       fontSize: 16,
+                        //       fontWeight: FontWeight.w700,
+                        //       color: GRAY_00,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ],

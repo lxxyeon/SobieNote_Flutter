@@ -7,4 +7,4 @@ const STUDENT_NAME_KEY = 'STUDENT_NAME';
 const SCHOOL_KEY = 'SCHOOL';
 const AGE_KEY = 'AGE';
 
-const ip = '34.47.91.193:8080';
+const ip = '34.64.225.87:8080';

@@ -134,22 +134,52 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     await Future.wait([secureStorage.deleteAll()]);
   }
 
-  Future<void> signUp({required SignUpForm form}) async {
+  Future<bool> signUp({required SignUpForm form}) async {
     try {
       final resp = await authRepository.signUp(form: form);
 
-      await secureStorage.write(key: MEMBER_ID_KEY, value: resp.accessToken);
-      await secureStorage.write(key: NAME_KEY, value: form.name);
-      await secureStorage.write(key: EMAIL_KEY, value: form.email);
-      await secureStorage.write(
-        key: SOCIAL_TYPE_KEY,
-        value: SocialType.LOCAL.name,
-      );
-      await secureStorage.write(key: STUDENT_NAME_KEY, value: form.studentName);
-      await secureStorage.write(key: AGE_KEY, value: form.studentName);
-      await secureStorage.write(key: SCHOOL_KEY, value: form.schoolName);
+      if (resp.success) {
+        // 필수 정보 저장
+        await secureStorage.write(key: NAME_KEY, value: form.name);
+        await secureStorage.write(key: EMAIL_KEY, value: form.email);
+        await secureStorage.write(
+          key: SOCIAL_TYPE_KEY,
+          value: SocialType.LOCAL.name,
+        );
+
+        if (form.studentName != null) {
+          await secureStorage.write(key: STUDENT_NAME_KEY, value: form.studentName);
+        }
+        if (form.age != null) {
+          await secureStorage.write(key: AGE_KEY, value: form.age.toString());
+        }
+        if (form.schoolName != null) {
+          await secureStorage.write(key: SCHOOL_KEY, value: form.schoolName);
+        }
+
+        if (resp.data.accessToken != null && resp.data.memberId != null) {
+          await secureStorage.write(key: ACCESS_TOKEN_KEY, value: resp.data.accessToken);
+          await secureStorage.write(
+            key: MEMBER_ID_KEY,
+            value: resp.data.memberId.toString(),
+          );
+          state = UserModel(
+            email: form.email,
+            nickName: form.name,
+            type: SocialType.LOCAL,
+            name: form.studentName,
+            age: form.age?.toString(),
+            school: form.schoolName,
+          );
+        }
+
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
-      print('회원 가입에 실패했습니다.  -> $e');
+      print('회원 가입에 실패했습니다. -> $e');
+      return false;
     }
   }
 

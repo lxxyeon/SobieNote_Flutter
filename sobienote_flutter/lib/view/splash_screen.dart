@@ -8,6 +8,7 @@ import '../user/user_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   static String get routeName => 'splash';
+
   const SplashScreen({super.key});
 
   @override
@@ -46,7 +47,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: DARK_TEAL,
-      body: Image.asset('assets/images/new_splash.jpeg'),
+      body: Container(
+          margin: const EdgeInsets.only(top: 80),
+          child: Image.asset('assets/images/new_onboarding.jpeg')),
     );
   }
 }

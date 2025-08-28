@@ -63,9 +63,11 @@ class AuthRepository {
     }
 
     if (request.type == SocialType.GOOGLE) {
+      print('google login');
       final GoogleSignIn googleSignIn = GoogleSignIn();
       final GoogleSignInAccount? account = await googleSignIn.signIn();
       if (account == null) {
+        print('google account null');
         throw Exception('Google 로그인 실패 또는 취소됨');
       }
 

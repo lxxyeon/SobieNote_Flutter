@@ -13,6 +13,7 @@ SignUpForm _$SignUpFormFromJson(Map<String, dynamic> json) => SignUpForm(
   schoolName: json['schoolName'] as String?,
   age: (json['age'] as num?)?.toInt(),
   studentName: json['studentName'] as String?,
+  gender: Gender.fromJson(json['gender'] as String?),
 );
 
 Map<String, dynamic> _$SignUpFormToJson(SignUpForm instance) =>
@@ -23,4 +24,5 @@ Map<String, dynamic> _$SignUpFormToJson(SignUpForm instance) =>
       'schoolName': instance.schoolName,
       'age': instance.age,
       'studentName': instance.studentName,
+      'gender': SignUpForm._genderToJson(instance.gender),
     };

@@ -75,9 +75,9 @@ class CustomInterceptor extends Interceptor {
       final data = err.response?.data;
       if (data is Map<String, dynamic> && data['error'] != null) {
         final error = data['error'];
-        final code = error['code'];
-        final message = error['message'];
-        print('CODE: $code, MESSAGE: $message');
+        // final code = error['code'];
+        // final message = error['message'];
+        // print('MESSAGE: $message');
       } else {
         print('Unknown error format: ${err.response?.data}');
       }

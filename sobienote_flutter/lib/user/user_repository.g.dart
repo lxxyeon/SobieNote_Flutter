@@ -18,6 +18,37 @@ class _UserRepository implements UserRepository {
   final ParseErrorLogger? errorLogger;
 
   @override
+  Future<BaseResponse<UserResponse>> getUserInfo(int memberId) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'accessToken': 'true'};
+    _headers.removeWhere((k, v) => v == null);
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<BaseResponse<UserResponse>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/${memberId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<UserResponse> _value;
+    try {
+      _value = BaseResponse<UserResponse>.fromJson(
+        _result.data!,
+        (json) => UserResponse.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<BaseResponse<OAuthResponse>> socialLogin(
     SocialLoginRequest request,
   ) async {
@@ -31,37 +62,6 @@ class _UserRepository implements UserRepository {
           .compose(
             _dio.options,
             '/social',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late BaseResponse<OAuthResponse> _value;
-    try {
-      _value = BaseResponse<OAuthResponse>.fromJson(
-        _result.data!,
-        (json) => OAuthResponse.fromJson(json as Map<String, dynamic>),
-      );
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
-  Future<BaseResponse<OAuthResponse>> login(LoginRequest request) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(request.toJson());
-    final _options = _setStreamType<BaseResponse<OAuthResponse>>(
-      Options(method: 'POST', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/login',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -113,16 +113,114 @@ class _UserRepository implements UserRepository {
   }
 
   @override
-  Future<BaseResponse<int>> deleteAccount(int memberId) async {
+  Future<BaseResponse<String>> passwordRequest(PwRequest request) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<BaseResponse<int>>(
-      Options(method: 'DELETE', headers: _headers, extra: _extra)
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
+    final _options = _setStreamType<BaseResponse<String>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/${memberId}',
+            '/password/request',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<String> _value;
+    try {
+      _value = BaseResponse<String>.fromJson(
+        _result.data!,
+        (json) => json as String,
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<String>> passwordReset(PwResetForm request) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
+    final _options = _setStreamType<BaseResponse<String>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/password/reset',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<String> _value;
+    try {
+      _value = BaseResponse<String>.fromJson(
+        _result.data!,
+        (json) => json as String,
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<OAuthResponse>> login(LoginRequest request) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
+    final _options = _setStreamType<BaseResponse<OAuthResponse>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/login',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<OAuthResponse> _value;
+    try {
+      _value = BaseResponse<OAuthResponse>.fromJson(
+        _result.data!,
+        (json) => OAuthResponse.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<int>> updateStudent(
+    StudentUpdateForm form,
+    int memberId,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'accessToken': 'true'};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    _data.addAll(form.toJson());
+    final _options = _setStreamType<BaseResponse<int>>(
+      Options(method: 'PATCH', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/student/${memberId}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -140,34 +238,26 @@ class _UserRepository implements UserRepository {
   }
 
   @override
-  Future<BaseResponse<OAuthResponse>> verifyEmail(
-    String token,
-    VerificationType type,
-  ) async {
+  Future<BaseResponse<int>> deleteAccount(int memberId) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'token': token,
-      r'type': type.name,
-    };
-    final _headers = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'accessToken': 'true'};
+    _headers.removeWhere((k, v) => v == null);
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<BaseResponse<OAuthResponse>>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
+    final _options = _setStreamType<BaseResponse<int>>(
+      Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/member/verify',
+            '/${memberId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late BaseResponse<OAuthResponse> _value;
+    late BaseResponse<int> _value;
     try {
-      _value = BaseResponse<OAuthResponse>.fromJson(
-        _result.data!,
-        (json) => OAuthResponse.fromJson(json as Map<String, dynamic>),
-      );
+      _value = BaseResponse<int>.fromJson(_result.data!, (json) => json as int);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

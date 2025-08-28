@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sobienote_flutter/common/const/colors.dart';
 import 'package:sobienote_flutter/user/request/sign_up_form.dart';
+import 'package:sobienote_flutter/widget/gender_selector.dart';
 
+import '../common/util/utils.dart';
+import '../user/model/user_model.dart';
 import '../user/user_provider.dart';
+import '../widget/school_grade_picker.dart';
 
 class SignUpBottomSheet extends ConsumerStatefulWidget {
   final BuildContext parentContext;
@@ -24,8 +28,13 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
   final _pwController = TextEditingController();
   final _pwConfirmController = TextEditingController();
   final _emailController = TextEditingController();
+
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
+  String? selectedSchool;
+  String? selectedGrade;
+  final TextEditingController schoolGradeController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  Gender? _selectedGender;
 
   Future<void> _nextStep() async {
     if (_currentStep < 2) {
@@ -37,45 +46,51 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
     } else {
       bool isSuccess = false;
       try {
-        isSuccess = await ref.read(userProvider.notifier).signUp(
-          form: _nameController.text.isNotEmpty && _ageController.text.isNotEmpty
-              ? SignUpForm(
-            name: _nicknameController.text,
-            password: _pwController.text,
-            email: _emailController.text,
-            studentName: _nameController.text,
-            age: _ageController.text.isEmpty
-                ? null
-                : int.parse(_ageController.text),
-          )
-              : SignUpForm(
-            name: _nicknameController.text,
-            password: _pwController.text,
-            email: _emailController.text,
-          ),
-        );
+        isSuccess = await ref
+            .read(userProvider.notifier)
+            .signUp(
+              form:
+                  _nameController.text.isNotEmpty &&
+                          selectedSchool != null &&
+                          selectedGrade != null
+                      ? SignUpForm(
+                        name: _nicknameController.text,
+                        password: _pwController.text,
+                        email: _emailController.text,
+                        studentName: _nameController.text,
+                        schoolName: selectedSchool,
+                        age: getAgeFromGrade(selectedSchool, selectedGrade),
+                        gender: _selectedGender,
+                      )
+                      : SignUpForm(
+                        name: _nicknameController.text,
+                        password: _pwController.text,
+                        email: _emailController.text,
+                      ),
+            );
       } catch (e) {
         isSuccess = false;
       }
-
-      showCupertinoDialog(context: context, builder: (context) {
-        return CupertinoAlertDialog(
-          title: Text('인증메일을 전송하였습니다.'),
-          content: Text('메일을 확인하여 인증을 완료해주세요.'),
-          actions: [
-            CupertinoDialogAction(
-              child: Text('확인'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        );
-      });
+      showCupertinoDialog(
+        context: context,
+        builder: (context) {
+          return CupertinoAlertDialog(
+            title: Text('인증메일을 전송하였습니다.'),
+            content: Text('메일을 확인하여 인증을 완료해주세요.'),
+            actions: [
+              CupertinoDialogAction(
+                child: Text('확인'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
   }
-
 
   Widget _buildStepIndicator() {
     return Row(
@@ -183,11 +198,11 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('강원청소년활동진흥센터인가요?'),
+                Text('강원청소년활동진흥센터인가요?', style: TextStyle(fontSize: 16)),
                 CupertinoSwitch(
                   value: isGangwon,
                   onChanged: (bool) {
@@ -198,12 +213,62 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
             if (isGangwon)
               Column(
                 children: [
-                  TextField(decoration: InputDecoration(hintText: '소속/나이')),
-                  const SizedBox(height: 5),
-                  TextField(decoration: InputDecoration(hintText: '이름')),
+                  TextField(
+                    controller: schoolGradeController,
+                    readOnly: true,
+                    onTap: () async {
+                      final result = await showSchoolGradePicker(
+                        context,
+                        selectedSchool: selectedSchool,
+                        selectedGrade: selectedGrade,
+                      );
+                      if (result != null) {
+                        setState(() {
+                          selectedSchool = result['school'];
+                          selectedGrade = result['grade'];
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText:
+                          (selectedSchool == null || selectedGrade == null)
+                              ? '학교/학년 선택'
+                              : '$selectedSchool $selectedGrade',
+                      suffixIcon: Icon(Icons.arrow_drop_down),
+                      filled: true,
+                      fillColor: TEAL,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: '이름',
+                      filled: true,
+                      fillColor: TEAL,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GenderSelector(
+                    onChanged: (genderLabel) {
+                      setState(() {
+                        _selectedGender =
+                            genderLabel == '여성' ? Gender.FEMALE : Gender.MALE;
+                      });
+                    },
+                  ),
                 ],
               ),
           ],

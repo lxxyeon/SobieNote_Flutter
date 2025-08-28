@@ -12,7 +12,7 @@ part 'report_repository.g.dart';
 
 final reportRepositoryProvider = Provider<ReportRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return ReportRepository(dio, baseUrl: 'http://$ip/report');
+  return ReportRepository(dio, baseUrl: 'https://$ip/report');
 });
 
 @RestApi()

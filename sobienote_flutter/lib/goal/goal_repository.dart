@@ -13,7 +13,7 @@ part 'goal_repository.g.dart';
 
 final goalRepositoryProvider = Provider<GoalRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return GoalRepository(dio, baseUrl: 'http://$ip/goal');
+  return GoalRepository(dio, baseUrl: 'https://$ip/goal');
 });
 
 @RestApi()

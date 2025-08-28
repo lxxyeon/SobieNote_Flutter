@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sobienote_flutter/user/request/login_request.dart';
+import 'package:sobienote_flutter/user/request/pw_request.dart';
+import 'package:sobienote_flutter/user/request/pw_reset_form.dart';
 import 'package:sobienote_flutter/user/request/sign_up_form.dart';
 import 'package:sobienote_flutter/user/request/social_login_request.dart';
-import 'package:sobienote_flutter/user/response/oauth_response.dart';
+import 'package:sobienote_flutter/user/request/student_update_form.dart';
 import 'package:sobienote_flutter/user/user_repository.dart';
 
 import '../common/const/data.dart';
@@ -20,6 +22,14 @@ final userInfoProvider = FutureProvider<UserModel>((ref) async {
   final age = await storage.read(key: AGE_KEY);
   final school = await storage.read(key: SCHOOL_KEY);
   final type = await storage.read(key: SOCIAL_TYPE_KEY);
+  final genderStr = await storage.read(key: GENDER_KEY);
+
+  final gender = genderStr != null
+      ? Gender.values.firstWhere(
+        (g) => g.name == genderStr,
+    orElse: () => Gender.FEMALE,
+  )
+      : Gender.FEMALE;
 
   return UserModel(
     nickName: nickname,
@@ -28,6 +38,7 @@ final userInfoProvider = FutureProvider<UserModel>((ref) async {
     age: age,
     school: school,
     type: SocialType.getByName(type!),
+    gender: gender,
   );
 });
 
@@ -66,9 +77,10 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     try {
       if (type.isEmpty || email.isEmpty || name.isEmpty || memberId.isEmpty) {
         state = UserModelError(message: '로그인 정보 없음');
+        print('$state 로그인 정보 없음');
         return;
       }
-      await userRepository.socialLogin(
+      final resp = await userRepository.socialLogin(
         SocialLoginRequest(
           email: email,
           name: name,
@@ -82,6 +94,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
       );
     } catch (e) {
       state = UserModelError(message: '로그인 실패');
+      print('$state 로그인 실패');
     }
   }
 
@@ -148,7 +161,10 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
         );
 
         if (form.studentName != null) {
-          await secureStorage.write(key: STUDENT_NAME_KEY, value: form.studentName);
+          await secureStorage.write(
+            key: STUDENT_NAME_KEY,
+            value: form.studentName,
+          );
         }
         if (form.age != null) {
           await secureStorage.write(key: AGE_KEY, value: form.age.toString());
@@ -158,7 +174,10 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
         }
 
         if (resp.data.accessToken != null && resp.data.memberId != null) {
-          await secureStorage.write(key: ACCESS_TOKEN_KEY, value: resp.data.accessToken);
+          await secureStorage.write(
+            key: ACCESS_TOKEN_KEY,
+            value: resp.data.accessToken,
+          );
           await secureStorage.write(
             key: MEMBER_ID_KEY,
             value: resp.data.memberId.toString(),
@@ -183,36 +202,64 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     }
   }
 
-  Future<void> verifyEmailAndLogin(String token) async {
+  Future<bool> passwordRequest({required PwRequest request}) async {
     try {
-      final resp = await userRepository.verifyEmail(
-        token,
-        VerificationType.SIGNUP,
-      );
-
-      final oAuthData = resp.data;
-
-      await secureStorage.write(key: ACCESS_TOKEN_KEY, value: oAuthData.accessToken);
-      await secureStorage.write(key: MEMBER_ID_KEY, value: oAuthData.memberId.toString());
-
-      final email = await secureStorage.read(key: EMAIL_KEY);
-      final name = await secureStorage.read(key: NAME_KEY);
-      final type = await secureStorage.read(key: SOCIAL_TYPE_KEY);
-      final studentName = await secureStorage.read(key: STUDENT_NAME_KEY);
-      final age = await secureStorage.read(key: AGE_KEY);
-      final school = await secureStorage.read(key: SCHOOL_KEY);
-
-      state = UserModel(
-        email: email!,
-        nickName: name!,
-        type: SocialType.getByName(type!),
-        name: studentName,
-        age: age,
-        school: school,
-      );
+      final resp = await userRepository.passwordRequest(request);
+      if (resp.success) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
-      state = UserModelError(message: '이메일 인증 실패: $e');
+      print('비밀번호 찾기 요청에 실패했습니다. -> $e');
+      return false;
     }
   }
 
+  Future<bool> passwordReset({required PwResetForm request}) async {
+    try {
+      final resp = await userRepository.passwordReset(request);
+      if (resp.success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('비밀번호 찾기 요청에 실패했습니다. -> $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateStudent({required StudentUpdateForm request}) async {
+    try {
+      final memberId = await secureStorage.read(key: MEMBER_ID_KEY);
+      if (memberId == null) {
+        return false;
+      }
+      final resp = await userRepository.updateStudent(
+        request,
+        int.parse(memberId),
+      );
+
+      if (resp.success) {
+        await secureStorage.write(
+          key: STUDENT_NAME_KEY,
+          value: request.studentName,
+        );
+        await secureStorage.write(key: AGE_KEY, value: request.age.toString());
+        await secureStorage.write(key: SCHOOL_KEY, value: request.schoolName);
+        await secureStorage.write(
+          key: GENDER_KEY,
+          value: request.gender.name,
+        );
+
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('학생 정보 수정에 실패했습니다. -> $e');
+      return false;
+    }
+  }
 }

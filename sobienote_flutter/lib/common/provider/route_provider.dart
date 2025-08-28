@@ -9,6 +9,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider((ref) {
   final provider = ref.watch(authProvider);
   return GoRouter(
+    navigatorKey: navigatorKey,
     routes: provider.routes,
     initialLocation: '/splash',
     refreshListenable: provider,

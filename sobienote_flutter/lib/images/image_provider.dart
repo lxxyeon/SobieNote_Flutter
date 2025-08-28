@@ -8,7 +8,7 @@ import 'image_repository.dart';
 
 final imagesRepositoryProvider = Provider<ImageRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return ImageRepository(dio, baseUrl: 'http://$ip/image');
+  return ImageRepository(dio, baseUrl: 'https://$ip/image');
 });
 
 final imagesProvider = FutureProvider.autoDispose.family<List<BoardImage>, (int year, int month)>(

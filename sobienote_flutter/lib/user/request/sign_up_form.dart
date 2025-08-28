@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../model/user_model.dart';
+
 part 'sign_up_form.g.dart';
 
 @JsonSerializable()
@@ -10,6 +12,8 @@ class SignUpForm {
   final String? schoolName;
   final int? age;
   final String? studentName;
+  @JsonKey(fromJson: Gender.fromJson, toJson: _genderToJson)
+  final Gender? gender;
 
   SignUpForm({
     required this.name,
@@ -18,7 +22,10 @@ class SignUpForm {
     this.schoolName,
     this.age,
     this.studentName,
+    this.gender,
   });
+
+  static String? _genderToJson(Gender? gender) => gender?.toJson();
 
   factory SignUpForm.fromJson(Map<String, dynamic> json) =>
       _$SignUpFormFromJson(json);

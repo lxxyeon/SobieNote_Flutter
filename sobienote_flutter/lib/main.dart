@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
+import 'common/provider/deep_link_provider.dart';
 import 'common/provider/route_provider.dart';
-import 'common/provider/secure_storage.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,21 +17,34 @@ void main() {
   runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends ConsumerState<MyApp> {
   void delete(FlutterSecureStorage storage) async {
     await storage.deleteAll();
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(deepLinkProvider.notifier);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     // final storage = ref.watch(secureStorageProvider);
     //
     // delete(storage);
     //
+    
     return MaterialApp.router(
       routerConfig: router,
       title: 'Flutter Demo',

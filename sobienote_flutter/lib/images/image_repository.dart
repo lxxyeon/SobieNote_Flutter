@@ -12,7 +12,7 @@ part 'image_repository.g.dart';
 
 final imagesRepositoryProvider = Provider<ImageRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return ImageRepository(dio, baseUrl: 'http://$ip/image');
+  return ImageRepository(dio, baseUrl: 'https://$ip/image');
 });
 
 @RestApi()

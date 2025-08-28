@@ -4,6 +4,7 @@ import 'package:sobienote_flutter/common/const/colors.dart';
 import 'package:sobienote_flutter/component/sign_up_bottom_sheet.dart';
 import 'package:sobienote_flutter/user/request/social_login_request.dart';
 
+import '../component/find_user_bottom_sheet.dart';
 import '../user/request/login_request.dart';
 import '../user/user_provider.dart';
 
@@ -194,6 +195,7 @@ class OnboardingScreen extends ConsumerWidget {
                         TextButton(
                           onPressed: () {
                             showModalBottomSheet(
+                              backgroundColor: Colors.white,
                               isScrollControlled: true,
                               context: context,
                               builder:
@@ -211,19 +213,29 @@ class OnboardingScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        // Container(color: GRAY_00, height: 16, width: 2),
-                        // const SizedBox(width: 6),
-                        // TextButton(
-                        //   onPressed: () {},
-                        //   child: const Text(
-                        //     '회원 찾기',
-                        //     style: TextStyle(
-                        //       fontSize: 16,
-                        //       fontWeight: FontWeight.w700,
-                        //       color: GRAY_00,
-                        //     ),
-                        //   ),
-                        // ),
+                        Container(color: GRAY_00, height: 16, width: 2),
+                        const SizedBox(width: 6),
+                        TextButton(
+                          onPressed: () {
+                            showModalBottomSheet(
+                              backgroundColor: Colors.white,
+                              isScrollControlled: true,
+                              context: context,
+                              builder:
+                                  (_) => FindUserBottomSheet(
+                                    parentContext: context,
+                                  ),
+                            );
+                          },
+                          child: const Text(
+                            '회원 찾기',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: GRAY_00,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],

@@ -47,8 +47,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="sobienote"
-                    android:host="verify-email" />
+                    android:scheme="https://"
+                    android:host="sobienote.p-e.kr" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

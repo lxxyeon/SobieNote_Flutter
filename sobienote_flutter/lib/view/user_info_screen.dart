@@ -11,9 +11,16 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sobienote_flutter/common/const/colors.dart';
 import 'package:sobienote_flutter/common/util/save_share.dart';
 import 'package:sobienote_flutter/component/default_layout.dart';
+import 'package:sobienote_flutter/user/request/student_update_form.dart';
+import 'package:sobienote_flutter/widget/gender_selector.dart';
 
 import '../common/const/text_style.dart';
+import '../common/util/utils.dart';
+import '../user/model/user_model.dart';
 import '../user/user_provider.dart';
+import '../widget/info_box.dart';
+import '../widget/info_row.dart';
+import '../widget/school_grade_picker.dart';
 
 class UserInfoScreen extends ConsumerStatefulWidget {
   static String get routeName => 'user-info';
@@ -29,6 +36,12 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
   ImagePicker imagePicker = ImagePicker();
   bool isYouth = false;
 
+  String? selectedSchool;
+  String? selectedGrade;
+  final TextEditingController schoolGradeController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  Gender gender = Gender.FEMALE;
+
   @override
   void initState() {
     super.initState();
@@ -40,10 +53,15 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     final files = directory.listSync();
 
     final profileImages =
-        files.where((file) {
-          return file is File &&
-              RegExp(r'profile_\d+\.jpg$').hasMatch(file.path.split('/').last);
-        }).toList();
+        files
+            .where(
+              (file) =>
+                  file is File &&
+                  RegExp(
+                    r'profile_\d+\.jpg$',
+                  ).hasMatch(file.path.split('/').last),
+            )
+            .toList();
 
     if (profileImages.isEmpty) return null;
 
@@ -63,7 +81,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     if (pickedFile != null) {
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: pickedFile.path,
-        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: '이미지 자르기',
@@ -93,7 +111,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
         context: context,
         builder: (BuildContext context) {
           return CupertinoActionSheet(
-            title: Text('사진 업로드 설정'),
+            title: const Text('사진 업로드 설정'),
             actions: [
               CupertinoActionSheetAction(
                 onPressed: () async {
@@ -101,11 +119,9 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                   final status = await Permission.camera.request();
                   if (status.isGranted) {
                     await pickAndCropImage(ImageSource.camera);
-                  } else {
-                    print('카메라 권한이 거부됨');
                   }
                 },
-                child: Text('사진 찍을래요'),
+                child: const Text('사진 찍을래요'),
               ),
               CupertinoActionSheetAction(
                 onPressed: () async {
@@ -120,13 +136,16 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                     await pickAndCropImage(ImageSource.gallery);
                   }
                 },
-                child: Text('앨범에서 선택할래요'),
+                child: const Text('앨범에서 선택할래요'),
               ),
             ],
             cancelButton: CupertinoActionSheetAction(
               onPressed: () => Navigator.pop(context),
               isDefaultAction: true,
-              child: Text('취소', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                '취소',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           );
         },
@@ -143,43 +162,51 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
       child: userInfoAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('불러오기 실패: $err')),
-        data:
-            (user) => Column(
+        data: (user) {
+          if ((user.name != null && user.age != null && user.school != null) &&
+              !isYouth) {
+            Future.microtask(() {
+              setState(() {
+                isYouth = true;
+                nameController.text = user.name ?? '';
+                selectedSchool = user.school;
+                selectedGrade = getGradeFromAge(user.school!, user.age!);
+                gender = user.gender ?? Gender.FEMALE;
+              });
+            });
+          }
+          return SingleChildScrollView(
+            child: Column(
               children: [
                 Stack(
                   children: [
-                    // 원형 프로필 이미지
                     CircleAvatar(
                       radius: 70,
                       backgroundImage:
                           _profileImage != null
                               ? FileImage(_profileImage!)
-                              : AssetImage('assets/images/icon.png')
+                              : const AssetImage('assets/images/icon.png')
                                   as ImageProvider,
                     ),
-                    // 오른쪽 아래 카메라 아이콘 버튼
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: () {},
                         child: Container(
-                          padding: EdgeInsets.all(6),
-                          decoration: BoxDecoration(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
                           ),
                           child: IconButton(
-                            icon: Icon(Icons.camera_alt),
+                            icon: const Icon(Icons.camera_alt),
                             iconSize: 20,
                             color: Colors.black,
-                            visualDensity: VisualDensity(
+                            visualDensity: const VisualDensity(
                               horizontal: VisualDensity.minimumDensity,
                               vertical: VisualDensity.minimumDensity,
                             ),
-                            onPressed: () {
-                              showImageSourceDialog();
-                            },
+                            onPressed: showImageSourceDialog,
                           ),
                         ),
                       ),
@@ -187,69 +214,233 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                   ],
                 ),
                 const SizedBox(height: 50),
-                _buildInfoBox([
-                  _buildInfoRow('닉네임', user.nickName, textStyle),
-                  _buildDivider(),
-                  _buildInfoRow('이메일', user.email, textStyle),
-                ]),
+
+                InfoBox(
+                  children: [
+                    InfoRow(
+                      label: '닉네임',
+                      trailing: Text(user.nickName, style: textStyle),
+                      labelStyle: textStyle,
+                    ),
+                    const Divider(color: GRAY_06),
+                    InfoRow(
+                      label: '이메일',
+                      trailing: Text(user.email, style: textStyle),
+                      labelStyle: textStyle,
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 30),
-                // Container(
-                //   margin: const EdgeInsets.symmetric(horizontal: 15),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text('우리동네 Youth-Up 참가자인가요?', style: textStyle),
-                //       CupertinoSwitch(
-                //         value: isYouth,
-                //         onChanged: (bool val) {
-                //           setState(() {
-                //             isYouth = val;
-                //           });
-                //         },
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // const SizedBox(height: 30),
-                // if (isYouth)
-                //   _buildInfoBox([
-                //     _buildInfoRow('이름', user.name, textStyle),
-                //     _buildDivider(),
-                //     _buildInfoRow('나이', user.age, textStyle),
-                //     _buildDivider(),
-                //     _buildInfoRow('소속', user.school, textStyle),
-                //   ]),
+
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('강원청소년활동진흥센터인가요?', style: textStyle),
+                      CupertinoSwitch(
+                        value: isYouth,
+                        onChanged: (val) => setState(() => isYouth = val),
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (isYouth) ...[
+                  const SizedBox(height: 24),
+                  InfoBox(
+                    children: [
+                      InfoRow(
+                        label: '이름',
+                        trailing: SizedBox(
+                          width: 150,
+                          height: 25,
+                          child: TextField(
+                            controller: nameController,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '이름',
+                              border: InputBorder.none,
+                              hintStyle: TextStyle(
+                                fontSize: 16,
+                                color:
+                                    nameController.text.isEmpty
+                                        ? GRAY_05
+                                        : Colors.black,
+                              ),
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                      ),
+                      const Divider(color: GRAY_06),
+                      InfoRow(
+                        label: '학교',
+                        trailing: GestureDetector(
+                          onTap: () async {
+                            final result = await showSchoolGradePicker(
+                              context,
+                              selectedSchool: selectedSchool,
+                              selectedGrade: selectedGrade,
+                            );
+                            if (result != null) {
+                              setState(() {
+                                selectedSchool = result['school'];
+                                selectedGrade = result['grade'];
+                              });
+                            }
+                          },
+                          child: Text(
+                            selectedSchool ?? '학교 선택',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color:
+                                  selectedSchool == null
+                                      ? GRAY_05
+                                      : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Divider(color: GRAY_06),
+                      InfoRow(
+                        label: '학년',
+                        trailing: GestureDetector(
+                          onTap: () async {
+                            final result = await showSchoolGradePicker(
+                              context,
+                              selectedSchool: selectedSchool,
+                              selectedGrade: selectedGrade,
+                            );
+                            if (result != null) {
+                              setState(() {
+                                selectedSchool = result['school'];
+                                selectedGrade = result['grade'];
+                              });
+                            }
+                          },
+                          child: Text(
+                            selectedGrade ?? '학년 선택',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color:
+                                  selectedGrade == null
+                                      ? GRAY_05
+                                      : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: GenderSelector(
+                      initialGender: user.gender == Gender.MALE ? '남성' : '여성',
+                      onChanged: (genderLabel) {
+                        setState(() {
+                          gender =
+                              genderLabel == '여성' ? Gender.FEMALE : Gender.MALE;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      child: TextButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.resolveWith<Color>((
+                                Set<WidgetState> states,
+                              ) {
+                                if (states.contains(WidgetState.disabled)) {
+                                  return Colors.grey;
+                                }
+                                return DARK_TEAL;
+                              }),
+                          foregroundColor:
+                              WidgetStateProperty.resolveWith<Color>((
+                                Set<WidgetState> states,
+                              ) {
+                                if (states.contains(WidgetState.disabled)) {
+                                  return Colors.grey.shade700;
+                                }
+                                return GRAY_09;
+                              }),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(
+                              side: BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        onPressed:
+                            _isFormValid
+                                ? () async {
+                                  final resp = await ref
+                                      .read(userProvider.notifier)
+                                      .updateStudent(
+                                        request: StudentUpdateForm(
+                                          schoolName: selectedSchool!,
+                                          age:
+                                              getAgeFromGrade(
+                                                selectedSchool!,
+                                                selectedGrade!,
+                                              ).toString(),
+                                          studentName: nameController.text,
+                                          gender: gender,
+                                        ),
+                                      );
+                                  if (!mounted) return;
+                                  ref.invalidate(userInfoProvider);
+                                  showCupertinoDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return CupertinoAlertDialog(
+                                        title: const Text('수정 완료'),
+                                        content: Text(
+                                          resp ? '학생 정보가 수정되었습니다.' :  '학생 정보 수정에 실패했습니다.',
+                                        ),
+                                        actions: [
+                                          CupertinoDialogAction(
+                                            child: const Text('확인'),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                                : null,
+                        child: const Text(
+                          '수정하기',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildInfoBox(List<Widget> children) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        border: Border.all(color: GRAY_06),
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: GRAY_09,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(mainAxisSize: MainAxisSize.min, children: children),
-    );
+  bool get _isFormValid {
+    return selectedSchool != null &&
+        selectedGrade != null &&
+        nameController.text.trim().isNotEmpty;
   }
-
-  Widget _buildInfoRow(String label, String? value, TextStyle style) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: style),
-          if (value != null) Text(value, style: style),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDivider() => const Divider(color: GRAY_06);
 }

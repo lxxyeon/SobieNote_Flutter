@@ -35,12 +35,20 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
   File? _profileImage;
   ImagePicker imagePicker = ImagePicker();
   bool isYouth = false;
+  bool isYouthInitial = false;
   bool initialized = false;
   String? selectedSchool;
   String? selectedGrade;
+  String? initialSchool;
+  String? initialGrade;
+  String? initialName;
+  Gender gender = Gender.FEMALE;
+  Gender? initialGender;
+
   final TextEditingController schoolGradeController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
-  Gender gender = Gender.FEMALE;
+
+  // Gender gender = Gender.FEMALE;
 
   @override
   void initState() {
@@ -173,6 +181,12 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
             selectedSchool = user.school;
             selectedGrade = getGradeFromAge(user.school!, user.age!);
             gender = user.gender ?? Gender.FEMALE;
+
+            isYouthInitial = true;
+            initialName = user.name;
+            initialSchool = selectedSchool;
+            initialGrade = selectedGrade;
+            initialGender = gender;
           }
           return SingleChildScrollView(
             child: Column(
@@ -240,7 +254,10 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                       Text('강원청소년활동진흥센터인가요?', style: textStyle),
                       CupertinoSwitch(
                         value: isYouth,
-                        onChanged: (val) => setState(() => isYouth = val),
+                        onChanged:
+                            (user.age == null || user.school == null)
+                                ? (val) => setState(() => isYouth = val)
+                                : null,
                       ),
                     ],
                   ),
@@ -382,7 +399,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                           ),
                         ),
                         onPressed:
-                            _isFormValid
+                            _isFormValid && _isChanged
                                 ? () async {
                                   final resp = await ref
                                       .read(userProvider.notifier)
@@ -399,14 +416,26 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                                         ),
                                       );
                                   if (!mounted) return;
-                                  ref.invalidate(userInfoProvider);
+
+                                  await ref.refresh(userInfoProvider.future);
+
+                                  setState(() {
+                                    initialName = nameController.text;
+                                    initialSchool = selectedSchool;
+                                    initialGrade = selectedGrade;
+                                    initialGender = gender;
+                                    isYouthInitial = isYouth;
+                                  });
+
                                   showCupertinoDialog(
                                     context: context,
                                     builder: (_) {
                                       return CupertinoAlertDialog(
                                         title: const Text('수정 완료'),
                                         content: Text(
-                                          resp ? '학생 정보가 수정되었습니다.' :  '학생 정보 수정에 실패했습니다.',
+                                          resp
+                                              ? '학생 정보가 수정되었습니다.'
+                                              : '학생 정보 수정에 실패했습니다.',
                                         ),
                                         actions: [
                                           CupertinoDialogAction(
@@ -441,5 +470,13 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     return selectedSchool != null &&
         selectedGrade != null &&
         nameController.text.trim().isNotEmpty;
+  }
+
+  bool get _isChanged {
+    return isYouth != isYouthInitial ||
+        nameController.text != (initialName ?? '') ||
+        selectedSchool != initialSchool ||
+        selectedGrade != initialGrade ||
+        gender != initialGender;
   }
 }

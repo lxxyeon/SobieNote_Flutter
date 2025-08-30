@@ -522,7 +522,7 @@ class _BoardContentSectionState extends ConsumerState<BoardContentSection> {
                       ? TextStyle(color: Colors.red)
                       : TextStyle(color: FONT_GRAY),
             ),
-            maxLength: 40,
+            maxLength: 100,
           ),
         ),
       ],

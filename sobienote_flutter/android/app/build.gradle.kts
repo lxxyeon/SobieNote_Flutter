@@ -24,8 +24,8 @@ android {
         applicationId = "com.ten022.sobienote_flutter"
         minSdk = 21
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.0.11"
+        versionCode = 14
+        versionName = "1.0.13"
     }
 
     signingConfigs {

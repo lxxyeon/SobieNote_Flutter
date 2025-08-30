@@ -18,8 +18,10 @@ class ReportCategory extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final items = snapshot.data!.data;
+        var items = snapshot.data!.data;
         items.sort((a, b) => b.value_cnt.compareTo(a.value_cnt));
+        items = items.take(14).toList();
+
         final top3Keywords = getTop3Ranks(items);
 
         final top3List = items.where((e) => top3Keywords.containsKey(e.keyword)).toList();

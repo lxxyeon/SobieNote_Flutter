@@ -228,7 +228,7 @@ class OnboardingScreen extends ConsumerWidget {
                             );
                           },
                           child: const Text(
-                            '회원 찾기',
+                            '비밀번호 찾기',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

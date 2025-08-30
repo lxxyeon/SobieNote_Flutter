@@ -21,7 +21,7 @@ class SignUpBottomSheet extends ConsumerStatefulWidget {
 
 class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
   int _currentStep = 0;
-  bool isGangwon = false;
+  bool isGangwon = true;
   bool _isValid = false;
   bool _isLoading = false;
 

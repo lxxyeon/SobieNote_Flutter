@@ -38,16 +38,17 @@ class CustomInterceptor extends Interceptor {
       final email = await storage.read(key: EMAIL_KEY);
       final name = await storage.read(key: NAME_KEY);
       final type = await storage.read(key: SOCIAL_TYPE_KEY);
-
       if (email == null || name == null || type == null) {
         handler.reject(err);
         return;
       }
       late final resp;
       if (SocialType.getByName(type) == SocialType.LOCAL) {
+        final password = await storage.read(key: PASSWORD_KEY);
+        if (password == null) handler.reject(err);
         resp = await ref
             .read(userProvider.notifier)
-            .login(loginRequest: LoginRequest(email: email, password: name));
+            .login(loginRequest: LoginRequest(email: email, password: password!));
       } else {
         resp = await ref
             .read(userProvider.notifier)
@@ -55,7 +56,7 @@ class CustomInterceptor extends Interceptor {
               socialLoginRequest: SocialLoginRequest(
                 email: email,
                 name: name,
-                type: SocialType.getByName(type!),
+                type: SocialType.getByName(type),
               ),
             );
       }
@@ -75,9 +76,8 @@ class CustomInterceptor extends Interceptor {
       final data = err.response?.data;
       if (data is Map<String, dynamic> && data['error'] != null) {
         final error = data['error'];
-        // final code = error['code'];
-        // final message = error['message'];
-        // print('MESSAGE: $message');
+        print('MESSAGE: ${error.toString()}');
+        print(err.requestOptions.data.toString());
       } else {
         print('Unknown error format: ${err.response?.data}');
       }

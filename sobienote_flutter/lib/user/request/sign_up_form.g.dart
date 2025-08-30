@@ -11,7 +11,7 @@ SignUpForm _$SignUpFormFromJson(Map<String, dynamic> json) => SignUpForm(
   email: json['email'] as String,
   password: json['password'] as String,
   schoolName: json['schoolName'] as String?,
-  age: (json['age'] as num?)?.toInt(),
+  age: json['age'] as String?,
   studentName: json['studentName'] as String?,
   gender: Gender.fromJson(json['gender'] as String?),
 );

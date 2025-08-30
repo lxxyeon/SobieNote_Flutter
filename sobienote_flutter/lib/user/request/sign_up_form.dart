@@ -10,7 +10,7 @@ class SignUpForm {
   final String email;
   final String password;
   final String? schoolName;
-  final int? age;
+  final String? age;
   final String? studentName;
   @JsonKey(fromJson: Gender.fromJson, toJson: _genderToJson)
   final Gender? gender;

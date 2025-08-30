@@ -15,30 +15,30 @@ import 'model/user_model.dart';
 
 final userInfoProvider = FutureProvider<UserModel>((ref) async {
   final storage = ref.read(secureStorageProvider);
+  final repository = ref.read(userRepositoryProvider);
 
-  final nickname = await storage.read(key: NAME_KEY) ?? '';
-  final email = await storage.read(key: EMAIL_KEY) ?? '';
-  final name = await storage.read(key: STUDENT_NAME_KEY);
-  final age = await storage.read(key: AGE_KEY);
-  final school = await storage.read(key: SCHOOL_KEY);
+  final memberIdStr = await storage.read(key: MEMBER_ID_KEY);
+  if (memberIdStr == null) {
+    throw Exception('memberId not found in secure storage');
+  }
+
+  final memberId = int.tryParse(memberIdStr);
+  if (memberId == null) {
+    throw Exception('Invalid memberId: $memberIdStr');
+  }
+
+  final response = await repository.getUserInfo(memberId);
+  final userResp = response.data;
   final type = await storage.read(key: SOCIAL_TYPE_KEY);
-  final genderStr = await storage.read(key: GENDER_KEY);
-
-  final gender = genderStr != null
-      ? Gender.values.firstWhere(
-        (g) => g.name == genderStr,
-    orElse: () => Gender.FEMALE,
-  )
-      : Gender.FEMALE;
 
   return UserModel(
-    nickName: nickname,
-    email: email,
-    name: name,
-    age: age,
-    school: school,
+    email: userResp.email,
     type: SocialType.getByName(type!),
-    gender: gender,
+    nickName: userResp.name,
+    name: userResp.studentName,
+    age: userResp.age?.toString(),
+    school: userResp.schoolName,
+    gender: Gender.fromJson(userResp.gender),
   );
 });
 
@@ -70,33 +70,54 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
   }
 
   Future<void> getMe() async {
-    String type = await secureStorage.read(key: SOCIAL_TYPE_KEY) ?? '';
-    String email = await secureStorage.read(key: EMAIL_KEY) ?? '';
-    String name = await secureStorage.read(key: NAME_KEY) ?? '';
-    String memberId = await secureStorage.read(key: MEMBER_ID_KEY) ?? '';
     try {
-      if (type.isEmpty || email.isEmpty || name.isEmpty || memberId.isEmpty) {
+      final memberIdStr = await secureStorage.read(key: MEMBER_ID_KEY);
+      if (memberIdStr == null || memberIdStr.isEmpty) {
         state = UserModelError(message: '로그인 정보 없음');
-        print('$state 로그인 정보 없음');
         return;
       }
-      final resp = await userRepository.socialLogin(
-        SocialLoginRequest(
-          email: email,
-          name: name,
-          type: SocialType.getByName(type),
-        ),
-      );
-      state = UserModel(
-        email: email,
-        type: SocialType.getByName(type),
-        nickName: name,
-      );
-    } catch (e) {
+
+      final memberId = int.tryParse(memberIdStr);
+      if (memberId == null) {
+        state = UserModelError(message: '유효하지 않은 회원 ID');
+        return;
+      }
+
+      final response = await userRepository.getUserInfo(memberId);
+
+      if (response.success) {
+        final userResp = response.data;
+
+        final socialTypeName = await secureStorage.read(key: SOCIAL_TYPE_KEY);
+        // final genderStr = await secureStorage.read(key: GENDER_KEY);
+
+        await secureStorage.write(key: NAME_KEY, value: userResp.name);
+        await secureStorage.write(key: STUDENT_NAME_KEY, value: userResp.studentName);
+        await secureStorage.write(key: AGE_KEY, value: userResp.age.toString());
+        await secureStorage.write(key: SCHOOL_KEY, value: userResp.schoolName);
+        await secureStorage.write(key: EMAIL_KEY, value: userResp.email);
+        await secureStorage.write(key: GENDER_KEY, value: Gender.fromJson(userResp.gender)?.name);
+
+        state = UserModel(
+          email: userResp.email,
+          type: SocialType.getByName(socialTypeName ?? 'LOCAL'),
+          nickName: userResp.name,
+          name: userResp.studentName,
+          age: userResp.age?.toString(),
+          school: userResp.schoolName,
+          gender: userResp.gender != null
+              ? Gender.fromJson(userResp.gender)
+              : null,
+        );
+      } else {
+        state = UserModelError(message: '유저 정보 조회 실패');
+      }
+    } catch (e, st) {
+      print('getMe() 오류: $e\n$st');
       state = UserModelError(message: '로그인 실패');
-      print('$state 로그인 실패');
     }
   }
+
 
   Future<UserModelBase> login({
     SocialLoginRequest? socialLoginRequest,
@@ -107,44 +128,58 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
       late final resp;
       if (socialLoginRequest != null) {
         resp = await authRepository.socialLogin(request: socialLoginRequest);
-      }
-      if (loginRequest != null) {
+      } else if (loginRequest != null) {
         resp = await authRepository.login(request: loginRequest);
+        await secureStorage.write(key: PASSWORD_KEY, value: loginRequest.password);
+        await secureStorage.write(key: EMAIL_KEY, value: loginRequest.email);
+        await secureStorage.write(key: SOCIAL_TYPE_KEY, value: SocialType.LOCAL.name);
       }
-      print('resp in user_provider: $resp');
+
       await secureStorage.write(key: ACCESS_TOKEN_KEY, value: resp.accessToken);
       await secureStorage.write(
         key: MEMBER_ID_KEY,
         value: resp.memberId.toString(),
       );
+
       String type = await secureStorage.read(key: SOCIAL_TYPE_KEY) ?? '';
       String email = await secureStorage.read(key: EMAIL_KEY) ?? '';
       String name = await secureStorage.read(key: NAME_KEY) ?? '';
-      print('resp in user_provider: $type, $email, $name');
+      String school = await secureStorage.read(key: SCHOOL_KEY) ?? '';
+      String age = await secureStorage.read(key: AGE_KEY) ?? '';
+      String studentName =
+          await secureStorage.read(key: STUDENT_NAME_KEY) ?? '';
+      String gender = await secureStorage.read(key: GENDER_KEY) ?? '';
 
       final user = UserModel(
         email: email,
         type: SocialType.getByName(type),
         nickName: name,
+        name: studentName,
+        age: age,
+        school: school,
+        gender: gender != '' ? Gender.values.firstWhere((g) => g.name == gender) : null,
       );
+
+
       state = user;
       return user;
     } catch (e) {
       state = UserModelError(message: '로그인에 실패했습니다.');
+      print('로그인 실패 ${e.toString()}');
       return Future.value(state);
     }
   }
 
   Future<void> logout() async {
+    await secureStorage.deleteAll();
     state = null;
-    await Future.wait([secureStorage.deleteAll()]);
   }
 
   Future<void> deleteAccount() async {
     state = null;
     final memberId = await secureStorage.read(key: MEMBER_ID_KEY);
     await userRepository.deleteAccount(int.parse(memberId!));
-    await Future.wait([secureStorage.deleteAll()]);
+    await secureStorage.deleteAll();
   }
 
   Future<bool> signUp({required SignUpForm form}) async {
@@ -155,6 +190,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
         // 필수 정보 저장
         await secureStorage.write(key: NAME_KEY, value: form.name);
         await secureStorage.write(key: EMAIL_KEY, value: form.email);
+        await secureStorage.write(key: PASSWORD_KEY, value: form.password);
         await secureStorage.write(
           key: SOCIAL_TYPE_KEY,
           value: SocialType.LOCAL.name,
@@ -248,10 +284,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
         );
         await secureStorage.write(key: AGE_KEY, value: request.age.toString());
         await secureStorage.write(key: SCHOOL_KEY, value: request.schoolName);
-        await secureStorage.write(
-          key: GENDER_KEY,
-          value: request.gender.name,
-        );
+        await secureStorage.write(key: GENDER_KEY, value: request.gender.name);
 
         return true;
       } else {

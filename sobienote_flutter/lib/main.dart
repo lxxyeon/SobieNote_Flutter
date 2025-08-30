@@ -43,8 +43,6 @@ class _MyAppState extends ConsumerState<MyApp> {
     // final storage = ref.watch(secureStorageProvider);
     //
     // delete(storage);
-    //
-    
     return MaterialApp.router(
       routerConfig: router,
       title: 'Flutter Demo',

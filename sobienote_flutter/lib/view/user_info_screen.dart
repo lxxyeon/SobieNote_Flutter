@@ -35,7 +35,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
   File? _profileImage;
   ImagePicker imagePicker = ImagePicker();
   bool isYouth = false;
-
+  bool initialized = false;
   String? selectedSchool;
   String? selectedGrade;
   final TextEditingController schoolGradeController = TextEditingController();
@@ -163,17 +163,16 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('불러오기 실패: $err')),
         data: (user) {
-          if ((user.name != null && user.age != null && user.school != null) &&
-              !isYouth) {
-            Future.microtask(() {
-              setState(() {
-                isYouth = true;
-                nameController.text = user.name ?? '';
-                selectedSchool = user.school;
-                selectedGrade = getGradeFromAge(user.school!, user.age!);
-                gender = user.gender ?? Gender.FEMALE;
-              });
-            });
+          if (!initialized &&
+              user.name != null &&
+              user.age != null &&
+              user.school != null) {
+            initialized = true;
+            isYouth = true;
+            nameController.text = user.name!;
+            selectedSchool = user.school;
+            selectedGrade = getGradeFromAge(user.school!, user.age!);
+            gender = user.gender ?? Gender.FEMALE;
           }
           return SingleChildScrollView(
             child: Column(
@@ -188,29 +187,29 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                               : const AssetImage('assets/images/icon.png')
                                   as ImageProvider,
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.camera_alt),
-                            iconSize: 20,
-                            color: Colors.black,
-                            visualDensity: const VisualDensity(
-                              horizontal: VisualDensity.minimumDensity,
-                              vertical: VisualDensity.minimumDensity,
-                            ),
-                            onPressed: showImageSourceDialog,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   bottom: 0,
+                    //   right: 0,
+                    //   child: GestureDetector(
+                    //     child: Container(
+                    //       padding: const EdgeInsets.all(6),
+                    //       decoration: const BoxDecoration(
+                    //         shape: BoxShape.circle,
+                    //         color: Colors.white,
+                    //       ),
+                    //       child: IconButton(
+                    //         icon: const Icon(Icons.camera_alt),
+                    //         iconSize: 20,
+                    //         color: Colors.black,
+                    //         visualDensity: const VisualDensity(
+                    //           horizontal: VisualDensity.minimumDensity,
+                    //           vertical: VisualDensity.minimumDensity,
+                    //         ),
+                    //         onPressed: showImageSourceDialog,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 50),

@@ -13,7 +13,7 @@ UserResponse _$UserResponseFromJson(Map<String, dynamic> json) => UserResponse(
   schoolName: json['schoolName'] as String?,
   age: json['age'] as String?,
   studentName: json['studentName'] as String?,
-  gender: $enumDecodeNullable(_$GenderEnumMap, json['gender']),
+  gender: json['gender'] as String?,
 );
 
 Map<String, dynamic> _$UserResponseToJson(UserResponse instance) =>
@@ -32,5 +32,3 @@ const _$SocialTypeEnumMap = {
   SocialType.GOOGLE: 'GOOGLE',
   SocialType.LOCAL: 'LOCAL',
 };
-
-const _$GenderEnumMap = {Gender.FEMALE: 'FEMALE', Gender.MALE: 'MALE'};

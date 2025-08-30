@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sobienote_flutter/user/model/user_model.dart';
 import 'package:sobienote_flutter/user/request/social_login_request.dart';
 
 part 'user_response.g.dart';
@@ -12,7 +11,7 @@ class UserResponse {
   final String? schoolName;
   final String? age;
   final String? studentName;
-  final Gender? gender;
+  final String? gender;
 
   UserResponse({
     required this.name,

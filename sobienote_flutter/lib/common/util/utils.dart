@@ -62,5 +62,5 @@ String? getGradeFromAge(String school, String age) {
   if (school.contains('초등')) return '${parsedAge - 7}학년';
   if (school.contains('중')) return '${parsedAge - 13}학년';
   if (school.contains('고')) return '${parsedAge - 16}학년';
-  return null;
+  return '${parsedAge} 세';
 }

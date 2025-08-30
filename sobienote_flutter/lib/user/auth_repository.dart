@@ -80,8 +80,6 @@ class AuthRepository {
 
     final resp = await userRepository.socialLogin(request);
 
-    print('resp = ${resp.data.toString()}');
-
     await storage.write(key: NAME_KEY, value: request.name);
     await storage.write(key: EMAIL_KEY, value: request.email);
     await storage.write(key: SOCIAL_TYPE_KEY, value: request.type.name);
@@ -91,9 +89,8 @@ class AuthRepository {
 
   Future<OAuthResponse> login({required LoginRequest request}) async {
     final resp = await userRepository.login(request);
-    print('resp = ${resp.data.toString()}');
 
-    await storage.write(key: NAME_KEY, value: request.password);
+    await storage.write(key: PASSWORD_KEY, value: request.password);
     await storage.write(key: EMAIL_KEY, value: request.email);
     await storage.write(key: SOCIAL_TYPE_KEY, value: SocialType.LOCAL.name);
 

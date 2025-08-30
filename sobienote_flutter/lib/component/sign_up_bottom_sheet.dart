@@ -23,6 +23,7 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
   int _currentStep = 0;
   bool isGangwon = false;
   bool _isValid = false;
+  bool _isLoading = false;
 
   final _nicknameController = TextEditingController();
   final _pwController = TextEditingController();
@@ -33,8 +34,7 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
   String? selectedSchool;
   String? selectedGrade;
   final TextEditingController schoolGradeController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
-  Gender? _selectedGender;
+  Gender _selectedGender = Gender.FEMALE;
 
   Future<void> _nextStep() async {
     if (_currentStep < 2) {
@@ -44,51 +44,59 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
       });
       _validate();
     } else {
+      setState(() {
+        _isLoading = true;
+      });
+
       bool isSuccess = false;
       try {
-        isSuccess = await ref
-            .read(userProvider.notifier)
-            .signUp(
-              form:
-                  _nameController.text.isNotEmpty &&
-                          selectedSchool != null &&
-                          selectedGrade != null
-                      ? SignUpForm(
-                        name: _nicknameController.text,
-                        password: _pwController.text,
-                        email: _emailController.text,
-                        studentName: _nameController.text,
-                        schoolName: selectedSchool,
-                        age: getAgeFromGrade(selectedSchool, selectedGrade),
-                        gender: _selectedGender,
-                      )
-                      : SignUpForm(
-                        name: _nicknameController.text,
-                        password: _pwController.text,
-                        email: _emailController.text,
-                      ),
-            );
+        isSuccess = await ref.read(userProvider.notifier).signUp(
+          form: _nameController.text.isNotEmpty &&
+              selectedSchool != null &&
+              selectedGrade != null
+              ? SignUpForm(
+            name: _nicknameController.text,
+            password: _pwController.text,
+            email: _emailController.text,
+            studentName: _nameController.text,
+            schoolName: selectedSchool,
+            age: getAgeFromGrade(selectedSchool, selectedGrade).toString(),
+            gender: _selectedGender,
+          )
+              : SignUpForm(
+            name: _nicknameController.text,
+            password: _pwController.text,
+            email: _emailController.text,
+          ),
+        );
       } catch (e) {
         isSuccess = false;
       }
-      showCupertinoDialog(
-        context: context,
-        builder: (context) {
-          return CupertinoAlertDialog(
-            title: Text('인증메일을 전송하였습니다.'),
-            content: Text('메일을 확인하여 인증을 완료해주세요.'),
-            actions: [
-              CupertinoDialogAction(
-                child: Text('확인'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (!isGangwon) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              title: Text('인증메일을 전송하였습니다.'),
+              content: Text('메일을 확인하여 인증을 완료해주세요.'),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
@@ -249,7 +257,7 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: nameController,
+                    controller: _nameController,
                     decoration: InputDecoration(
                       hintText: '이름',
                       filled: true,
@@ -284,9 +292,7 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
     return SizedBox(
       height: height * 0.9,
       child: Padding(
-        padding: MediaQuery.of(
-          context,
-        ).viewInsets.add(const EdgeInsets.all(24)),
+        padding: MediaQuery.of(context).viewInsets.add(const EdgeInsets.all(24)),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -295,7 +301,9 @@ class _SignUpBottomSheetState extends ConsumerState<SignUpBottomSheet> {
               const SizedBox(height: 60),
               _buildStepContent(),
               const SizedBox(height: 60),
-              SizedBox(
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
